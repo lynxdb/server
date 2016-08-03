@@ -23,7 +23,6 @@
  */
 package com.github.lynxdb.server.core;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -39,7 +38,7 @@ public class Metric extends Entry{
     public Metric(String _name, Map<String, String> _tags, int _time, double _value) {
         super(_time, _value);
         name = _name;
-        tags = Collections.unmodifiableMap(_tags);
+        tags = _tags;
     }
 
     public Metric(String _name, int _time, double _value, Tag... _tags) {
@@ -49,13 +48,13 @@ public class Metric extends Entry{
         for (Tag tag : _tags) {
             tagMap.put(tag.getKey(), tag.getValue());
         }
-        tags = Collections.unmodifiableMap(tagMap);
+        tags = tagMap;
     }
 
     public Metric(com.github.lynxdb.server.api.http.mappers.Metric _m) {
         super((_m.timestamp > Integer.MAX_VALUE) ? (int) Math.floorDiv(_m.timestamp, 1000) : (int) _m.timestamp, _m.value);
         name = _m.metric;
-        tags = Collections.unmodifiableMap(_m.tags);
+        tags = _m.tags;
 
     }
 
