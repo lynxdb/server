@@ -23,6 +23,7 @@
  */
 package com.github.lynxdb.server.monitoring;
 
+import com.github.lynxdb.server.common.HostnameProvider;
 import com.github.lynxdb.server.core.Metric;
 import com.github.lynxdb.server.core.Vhost;
 import com.github.lynxdb.server.core.repository.EntryRepo;
@@ -55,6 +56,8 @@ public class Monitor extends TimerTask implements Bundle{
     private EntryRepo entries;
     @Autowired
     private ApplicationContext appC;
+    @Autowired
+    private HostnameProvider hostname;
 
     @Override
     public void start() throws Exception {
@@ -88,6 +91,7 @@ public class Monitor extends TimerTask implements Bundle{
             p.get().forEach((Metric t) -> {
                 LOGGER.debug("Probe " + p.getClass().getName() + " returned metric " + t.getName() + t.getTags());
                 metrics.add(t);
+                t.getTags().put("host", hostname.get());
             });
         });
         
