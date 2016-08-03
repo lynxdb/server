@@ -5,6 +5,7 @@
  */
 package com.github.lynxdb.server.core.repository;
 
+import com.datastax.driver.core.ResultSetFuture;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.github.lynxdb.server.core.User;
@@ -44,7 +45,8 @@ public class UserRepo {
 
     public boolean create(User _user) {
         monitor.queryPutCount.incrementAndGet();
-        Row r = ct.query(CassandraTemplate.createInsertQuery("users", _user, null, ct.getConverter()).ifNotExists().getQueryString()).one();
+        ResultSetFuture rsf = ct.executeAsynchronously(CassandraTemplate.createInsertQuery("users", _user, null, ct.getConverter()).ifNotExists());
+        Row r = rsf.getUninterruptibly().one();
         return r.getBool("[applied]");
     }
 
