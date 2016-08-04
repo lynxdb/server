@@ -23,53 +23,30 @@
  */
 package com.github.lynxdb.server.common;
 
-import com.github.lynxdb.server.exception.WtfException;
-import java.util.Iterator;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import com.google.common.util.concurrent.AtomicDouble;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  *
  * @author cambierr
- * @param <T>
  */
-public class EvictingQueue<T extends Object> implements Iterable<T> {
+public class Average {
 
-    private final int size;
-    private final ConcurrentLinkedQueue<T> bakingList;
+    private final AtomicDouble sum;
+    private final AtomicInteger count;
 
-    public EvictingQueue(int _size) {
-        size = _size;
-        bakingList = new ConcurrentLinkedQueue<>();
+    public Average() {
+        sum = new AtomicDouble();
+        count = new AtomicInteger();
     }
 
-    public void add(T _entry) {
-        while (bakingList.size() >= size) {
-            bakingList.poll();
-        }
-        bakingList.add(_entry);
+    public void add(double _entry) {
+        sum.addAndGet(_entry);
+        count.incrementAndGet();
     }
 
-    @Override
-    public Iterator<T> iterator() {
-        return new Iterator<T>() {
-
-            Iterator<T> source = bakingList.iterator();
-
-            @Override
-            public boolean hasNext() {
-                return source.hasNext();
-            }
-
-            @Override
-            public T next() {
-                return source.next();
-            }
-
-            @Override
-            public void remove() {
-                throw new WtfException("You should not remove values yourself!");
-            }
-        };
+    public double get() {
+        return (count.get() == 0) ? 0.0 : (sum.getAndSet(0) / count.getAndSet(0));
     }
 
 }
