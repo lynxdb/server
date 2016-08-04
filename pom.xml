@@ -17,7 +17,6 @@
         <spring.version>1.4.0.RELEASE</spring.version>
         <netty.version>4.1.4.Final</netty.version>
         <docker.plugin.version>0.4.11</docker.plugin.version>
-        <jarName>lynxdb</jarName>
     </properties>
     
     
@@ -106,7 +105,7 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <version>${spring.version}</version>
                 <configuration>
-                    <finalName>${jarName}</finalName>
+                    <finalName>${project.artifactId}</finalName>
                     <mainClass>com.github.lynxdb.server.run.Run</mainClass>
                 </configuration>
                 <executions>
@@ -127,7 +126,14 @@
                     <imageTags>
                         <imageTag>${project.version}</imageTag>
                     </imageTags>
-                    <dockerDirectory>./</dockerDirectory>
+                    <dockerDirectory>${project.basedir}/src/main/docker</dockerDirectory>
+                    <resources>
+                        <resource>
+                            <targetPath>/</targetPath>
+                            <directory>${project.build.directory}</directory>
+                            <include>${project.artifactId}.jar</include>
+                        </resource>
+                    </resources>
                 </configuration>
             </plugin>
         </plugins>
