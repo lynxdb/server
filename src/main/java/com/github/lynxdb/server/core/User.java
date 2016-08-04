@@ -11,13 +11,14 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.UUID;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cassandra.core.PrimaryKeyType;
 import org.springframework.data.cassandra.mapping.PrimaryKeyColumn;
 import org.springframework.data.cassandra.mapping.Table;
+import org.springframework.security.authentication.encoding.ShaPasswordEncoder;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.crypto.bcrypt.BCrypt;
 
 /**
  *
@@ -34,6 +35,9 @@ public class User implements UserDetails {
     private UUID vhostId;
     private Rank rank;
 
+    @Autowired
+    private ShaPasswordEncoder passwordEncoder = new ShaPasswordEncoder(256);
+
     private User() {
 
     }
@@ -46,15 +50,22 @@ public class User implements UserDetails {
     }
 
     public User(UserCreationRequest _ucr) {
-        this(_ucr.vhost, _ucr.login, BCrypt.hashpw(_ucr.password, BCrypt.gensalt(BCRYPT_ROUNDS)), _ucr.rank);
+        this.vhostId = _ucr.vhost;
+        this.userLogin = _ucr.login;
+        this.userPassword = new ShaPasswordEncoder(256).encodePassword(_ucr.password, getPasswordSalt());
+        this.rank = _ucr.rank;
     }
 
     public boolean checkPassword(String _password) {
-        return BCrypt.checkpw(_password, userPassword);
+        return passwordEncoder.isPasswordValid(userPassword, _password, getPasswordSalt());
+    }
+
+    private String getPasswordSalt() {
+        return userLogin + vhostId;
     }
 
     public User setPassword(String _password) {
-        userPassword = BCrypt.hashpw(_password, BCrypt.gensalt(BCRYPT_ROUNDS));
+        userPassword = passwordEncoder.encodePassword(_password, getPasswordSalt());
         return this;
     }
 

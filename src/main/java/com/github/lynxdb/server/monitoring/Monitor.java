@@ -23,6 +23,7 @@
  */
 package com.github.lynxdb.server.monitoring;
 
+import com.github.lynxdb.server.common.HostnameProvider;
 import com.github.lynxdb.server.core.Metric;
 import com.github.lynxdb.server.core.Vhost;
 import com.github.lynxdb.server.core.repository.EntryRepo;
@@ -47,7 +48,6 @@ public class Monitor extends TimerTask implements Bundle{
     private static final long MONITORING_TIME = 5000;
     private static final Logger LOGGER = LoggerFactory.getLogger(Monitor.class);
     public static final String PREFIX = "lynx";
-    public static final int AVG_SIZE = 100;
 
     private final Timer scheduler = new Timer(true);
     private final List<Probe> probes = new ArrayList<>();
@@ -55,6 +55,8 @@ public class Monitor extends TimerTask implements Bundle{
     private EntryRepo entries;
     @Autowired
     private ApplicationContext appC;
+    @Autowired
+    private HostnameProvider hostname;
 
     @Override
     public void start() throws Exception {
@@ -88,6 +90,7 @@ public class Monitor extends TimerTask implements Bundle{
             p.get().forEach((Metric t) -> {
                 LOGGER.debug("Probe " + p.getClass().getName() + " returned metric " + t.getName() + t.getTags());
                 metrics.add(t);
+                t.getTags().put("host", hostname.get());
             });
         });
         
