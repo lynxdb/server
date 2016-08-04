@@ -23,7 +23,7 @@ public class UserCreationRequest {
     @Size(min = 3)
     public String login;
     @NotEmpty
-    @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,}$")
+    @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*[0-9]).{8,}$", message = "Password must contains minimum 8 characters, at least 1 alphabet and 1 number.")
     public String password;
     @NotNull
     public User.Rank rank;

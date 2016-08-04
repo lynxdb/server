@@ -10,6 +10,7 @@ import com.github.lynxdb.server.api.http.ErrorResponse;
 import com.github.lynxdb.server.api.http.mappers.UserCreationRequest;
 import com.github.lynxdb.server.core.User;
 import com.github.lynxdb.server.core.repository.UserRepo;
+import java.util.ArrayList;
 import java.util.List;
 import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +19,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -45,6 +47,14 @@ public class EpUser {
             Authentication _authentication,
             @RequestBody @Valid UserCreationRequest _ucr, BindingResult _bindingResult) {
 
+        if (_bindingResult.hasErrors()) {
+            ArrayList<String> errors = new ArrayList();
+            _bindingResult.getFieldErrors().forEach((FieldError t) -> {
+                errors.add(t.getField() + ": " + t.getDefaultMessage());
+            });
+            return new ErrorResponse(mapper, HttpStatus.BAD_REQUEST, errors.toString()).response();
+        }
+        
         User u = new User(_ucr);
 
         if (users.create(u)) {
@@ -62,6 +72,32 @@ public class EpUser {
         return ResponseEntity.ok(userList);
     }
 
+    @RequestMapping(value = "/{userLogin}", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity updateUser(
+            Authentication _authentication,
+            @PathVariable("userLogin") String userLogin,
+            @RequestBody @Valid UserCreationRequest _ucr, BindingResult _bindingResult) {
+
+        if (_bindingResult.hasErrors()) {
+            ArrayList<String> errors = new ArrayList();
+            _bindingResult.getFieldErrors().forEach((FieldError t) -> {
+                errors.add(t.getField() + ": " + t.getDefaultMessage());
+            });
+            return new ErrorResponse(mapper, HttpStatus.BAD_REQUEST, errors.toString()).response();
+        }
+        
+        User user = users.byLogin(userLogin);
+        if (user == null) {
+            return new ErrorResponse(mapper, HttpStatus.BAD_REQUEST, "User does not exist.", null).response();
+        }
+
+        user.setPassword(userLogin);
+        
+        users.save(user);
+
+        return ResponseEntity.ok(user);
+    }
+    
     @RequestMapping(value = "/{userLogin}", method = RequestMethod.DELETE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity deleteUser(
             Authentication _authentication,

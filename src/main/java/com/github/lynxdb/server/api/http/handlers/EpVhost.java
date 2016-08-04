@@ -10,6 +10,7 @@ import com.github.lynxdb.server.api.http.ErrorResponse;
 import com.github.lynxdb.server.core.Vhost;
 import com.github.lynxdb.server.api.http.mappers.VhostCreationRequest;
 import com.github.lynxdb.server.core.repository.VhostRepo;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import javax.validation.Valid;
@@ -19,6 +20,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -45,6 +47,14 @@ public class EpVhost {
     public ResponseEntity createVhost(Authentication _authentication,
             @RequestBody @Valid VhostCreationRequest _vcr, BindingResult _bindingResult) {
 
+        if (_bindingResult.hasErrors()) {
+            ArrayList<String> errors = new ArrayList();
+            _bindingResult.getFieldErrors().forEach((FieldError t) -> {
+                errors.add(t.getField() + ": " + t.getDefaultMessage());
+            });
+            return new ErrorResponse(mapper, HttpStatus.BAD_REQUEST, errors.toString()).response();
+        }
+        
         Vhost v = new Vhost(_vcr);
 
         vhosts.save(v);
