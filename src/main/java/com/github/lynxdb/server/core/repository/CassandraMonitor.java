@@ -23,7 +23,7 @@
  */
 package com.github.lynxdb.server.core.repository;
 
-import com.github.lynxdb.server.common.EvictingQueue;
+import com.github.lynxdb.server.common.Average;
 import com.github.lynxdb.server.core.Metric;
 import com.github.lynxdb.server.monitoring.Monitor;
 import com.github.lynxdb.server.monitoring.Probe;
@@ -39,8 +39,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class CassandraMonitor implements Probe {
 
-    public final EvictingQueue<Integer> tsScanQueryTime = new EvictingQueue<>(Monitor.AVG_SIZE);
-    public final EvictingQueue<Integer> tsFetchQueryTime = new EvictingQueue<>(Monitor.AVG_SIZE);
+    public final Average tsScanQueryTime = new Average();
+    public final Average tsFetchQueryTime = new Average();
 
     public final AtomicLong queryScanCount = new AtomicLong();
     public final AtomicLong queryFetchCount = new AtomicLong();
@@ -54,8 +54,8 @@ public class CassandraMonitor implements Probe {
         int now = (int) (System.currentTimeMillis() / 1000);
 
         return Arrays.asList(
-                new Metric(Monitor.PREFIX + ".cassandra.query.time", now, computeAvg(tsScanQueryTime), new Metric.Tag("type", "scan")),
-                new Metric(Monitor.PREFIX + ".cassandra.query.time", now, computeAvg(tsFetchQueryTime), new Metric.Tag("type", "fetch")),
+                new Metric(Monitor.PREFIX + ".cassandra.query.time", now, tsScanQueryTime.get(), new Metric.Tag("type", "scan")),
+                new Metric(Monitor.PREFIX + ".cassandra.query.time", now, tsFetchQueryTime.get(), new Metric.Tag("type", "fetch")),
                 new Metric(Monitor.PREFIX + ".cassandra.rqst", now, queryScanCount.getAndSet(0), new Metric.Tag("type", "scan")),
                 new Metric(Monitor.PREFIX + ".cassandra.rqst", now, queryFetchCount.getAndSet(0), new Metric.Tag("type", "fetch")),
                 new Metric(Monitor.PREFIX + ".cassandra.rqst", now, queryDeleteCount.getAndSet(0), new Metric.Tag("type", "delete")),
@@ -63,19 +63,6 @@ public class CassandraMonitor implements Probe {
                 new Metric(Monitor.PREFIX + ".cassandra.rqst", now, queryPutCount.getAndSet(0), new Metric.Tag("type", "put")),
                 new Metric(Monitor.PREFIX + ".cassandra.rqst.batch", now, queryBatchCount.getAndSet(0))
         );
-    }
-
-    private double computeAvg(EvictingQueue<Integer> _from) {
-        double output = 0.0;
-        int count = 0;
-        for (Integer i : _from) {
-            output += i;
-            count++;
-        }
-        if (count > 0) {
-            output /= count;
-        }
-        return output;
     }
 
 }

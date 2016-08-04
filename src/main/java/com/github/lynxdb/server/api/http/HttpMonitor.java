@@ -23,7 +23,7 @@
  */
 package com.github.lynxdb.server.api.http;
 
-import com.github.lynxdb.server.common.EvictingQueue;
+import com.github.lynxdb.server.common.Average;
 import com.github.lynxdb.server.core.Metric;
 import com.github.lynxdb.server.monitoring.Monitor;
 import com.github.lynxdb.server.monitoring.Probe;
@@ -49,9 +49,9 @@ public class HttpMonitor implements Probe {
     public final AtomicLong putOK = new AtomicLong();
     public final AtomicLong putFAIL = new AtomicLong();
 
-    public final EvictingQueue<Integer> queryLatencies = new EvictingQueue<>(Monitor.AVG_SIZE);
-    public final EvictingQueue<Integer> putLatencies = new EvictingQueue<>(Monitor.AVG_SIZE);
-    public final EvictingQueue<Integer> httpLatencies = new EvictingQueue<>(Monitor.AVG_SIZE);
+    public final Average queryLatencies = new Average();
+    public final Average putLatencies = new Average();
+    public final Average httpLatencies = new Average();
 
     @Override
     public List<Metric> get() {
@@ -65,23 +65,10 @@ public class HttpMonitor implements Probe {
                 new Metric(Monitor.PREFIX + ".http.query.fail", now, queryFAIL.getAndSet(0)),
                 new Metric(Monitor.PREFIX + ".http.put.ok", now, putOK.getAndSet(0)),
                 new Metric(Monitor.PREFIX + ".http.put.fail", now, putFAIL.getAndSet(0)),
-                new Metric(Monitor.PREFIX + ".http.query.latency", now, computeAvg(queryLatencies)),
-                new Metric(Monitor.PREFIX + ".http.put.latency", now, computeAvg(putLatencies)),
-                new Metric(Monitor.PREFIX + ".http.latency", now, computeAvg(httpLatencies))
+                new Metric(Monitor.PREFIX + ".http.query.latency", now, queryLatencies.get()),
+                new Metric(Monitor.PREFIX + ".http.put.latency", now, putLatencies.get()),
+                new Metric(Monitor.PREFIX + ".http.latency", now, httpLatencies.get())
         );
-    }
-
-    private double computeAvg(EvictingQueue<Integer> _from) {
-        double output = 0.0;
-        int count = 0;
-        for (Integer i : _from) {
-            output += i;
-            count++;
-        }
-        if (count > 0) {
-            output /= count;
-        }
-        return output;
     }
 
 }

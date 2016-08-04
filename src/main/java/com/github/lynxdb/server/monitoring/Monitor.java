@@ -48,7 +48,6 @@ public class Monitor extends TimerTask implements Bundle{
     private static final long MONITORING_TIME = 5000;
     private static final Logger LOGGER = LoggerFactory.getLogger(Monitor.class);
     public static final String PREFIX = "lynx";
-    public static final int AVG_SIZE = 100;
 
     private final Timer scheduler = new Timer(true);
     private final List<Probe> probes = new ArrayList<>();
