@@ -8,6 +8,7 @@ package com.github.lynxdb.server.api.http.handlers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.lynxdb.server.api.http.ErrorResponse;
 import com.github.lynxdb.server.api.http.mappers.UserCreationRequest;
+import com.github.lynxdb.server.api.http.mappers.UserUpdateRequest;
 import com.github.lynxdb.server.core.User;
 import com.github.lynxdb.server.core.repository.UserRepo;
 import java.util.ArrayList;
@@ -54,7 +55,7 @@ public class EpUser {
             });
             return new ErrorResponse(mapper, HttpStatus.BAD_REQUEST, errors.toString()).response();
         }
-        
+
         User u = new User(_ucr);
 
         if (users.create(u)) {
@@ -76,7 +77,7 @@ public class EpUser {
     public ResponseEntity updateUser(
             Authentication _authentication,
             @PathVariable("userLogin") String userLogin,
-            @RequestBody @Valid UserCreationRequest _ucr, BindingResult _bindingResult) {
+            @RequestBody @Valid UserUpdateRequest _ucr, BindingResult _bindingResult) {
 
         if (_bindingResult.hasErrors()) {
             ArrayList<String> errors = new ArrayList();
@@ -85,19 +86,24 @@ public class EpUser {
             });
             return new ErrorResponse(mapper, HttpStatus.BAD_REQUEST, errors.toString()).response();
         }
-        
+
         User user = users.byLogin(userLogin);
         if (user == null) {
             return new ErrorResponse(mapper, HttpStatus.BAD_REQUEST, "User does not exist.", null).response();
         }
 
-        user.setPassword(userLogin);
-        
+        if (_ucr.password != null && !_ucr.password.isEmpty()) {
+            user.setPassword(_ucr.password);
+        }
+        if(_ucr.rank != null){
+            user.setRank(_ucr.rank);
+        }
+
         users.save(user);
 
         return ResponseEntity.ok(user);
     }
-    
+
     @RequestMapping(value = "/{userLogin}", method = RequestMethod.DELETE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity deleteUser(
             Authentication _authentication,

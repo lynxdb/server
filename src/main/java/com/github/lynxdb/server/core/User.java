@@ -91,6 +91,10 @@ public class User implements UserDetails {
     public Rank getRank() {
         return rank;
     }
+    
+    public void setRank(Rank _rank){
+        this.rank = _rank;
+    }
 
     @JsonIgnore
     @Override

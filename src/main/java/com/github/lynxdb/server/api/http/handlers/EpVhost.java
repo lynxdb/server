@@ -9,6 +9,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.lynxdb.server.api.http.ErrorResponse;
 import com.github.lynxdb.server.core.Vhost;
 import com.github.lynxdb.server.api.http.mappers.VhostCreationRequest;
+import com.github.lynxdb.server.core.User;
+import com.github.lynxdb.server.core.repository.UserRepo;
 import com.github.lynxdb.server.core.repository.VhostRepo;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,10 +38,13 @@ import org.springframework.web.bind.annotation.RestController;
 public class EpVhost {
 
     public static final String ENDPOINT = "/api/vhost";
-    
+
     @Autowired
     private VhostRepo vhosts;
-    
+
+    @Autowired
+    private UserRepo users;
+
     @Autowired
     private ObjectMapper mapper;
 
@@ -54,11 +59,11 @@ public class EpVhost {
             });
             return new ErrorResponse(mapper, HttpStatus.BAD_REQUEST, errors.toString()).response();
         }
-        
+
         Vhost v = new Vhost(_vcr);
 
         vhosts.save(v);
-        
+
         return ResponseEntity.ok(v);
     }
 
@@ -70,6 +75,22 @@ public class EpVhost {
         return ResponseEntity.ok(vhostList);
     }
 
+    @RequestMapping(value = "/{vhostUUID}/user", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity listUser(
+            Authentication _authentication,
+            @PathVariable("vhostUUID") UUID vhostId) {
+
+        Vhost vhost = vhosts.byId(vhostId);
+
+        if (vhost == null) {
+            return new ErrorResponse(mapper, HttpStatus.BAD_REQUEST, "Vhost does not exist.", null).response();
+        }
+
+        List<User> userList = users.byVhost(vhost);
+
+        return ResponseEntity.ok(userList);
+    }
+
     @RequestMapping(value = "/{vhostUUID}", method = RequestMethod.DELETE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity deleteVhost(
             Authentication _authentication,
@@ -77,10 +98,10 @@ public class EpVhost {
 
         Vhost vhost = vhosts.byId(vhostId);
 
-        if(vhost == null){
+        if (vhost == null) {
             return new ErrorResponse(mapper, HttpStatus.BAD_REQUEST, "Vhost does not exist.", null).response();
         }
-        
+
         vhosts.delete(vhost);
 
         return ResponseEntity.noContent().build();

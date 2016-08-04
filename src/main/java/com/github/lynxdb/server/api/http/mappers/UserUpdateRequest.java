@@ -23,8 +23,8 @@
  */
 package com.github.lynxdb.server.api.http.mappers;
 
+import com.github.lynxdb.server.core.User.Rank;
 import javax.validation.constraints.Pattern;
-import org.hibernate.validator.constraints.NotEmpty;
 
 /**
  *
@@ -32,7 +32,7 @@ import org.hibernate.validator.constraints.NotEmpty;
  */
 public class UserUpdateRequest {
 
-    @NotEmpty
     @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*[0-9]).{8,}$", message = "Password must contains minimum 8 characters, at least 1 alphabet and 1 number.")
     public String password;
+    public Rank rank;
 }
