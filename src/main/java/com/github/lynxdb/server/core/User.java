@@ -11,7 +11,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.UUID;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cassandra.core.PrimaryKeyType;
 import org.springframework.data.cassandra.mapping.PrimaryKeyColumn;
 import org.springframework.data.cassandra.mapping.Table;
@@ -19,24 +18,23 @@ import org.springframework.security.authentication.encoding.ShaPasswordEncoder;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Component;
 
 /**
  *
  * @author honorem
  */
 @Table("users")
+@Component
 public class User implements UserDetails {
 
-    public static final int BCRYPT_ROUNDS = 12;
+    private static final ShaPasswordEncoder SHA_PASSWORD_ENCODER = new ShaPasswordEncoder(256);
 
     @PrimaryKeyColumn(name = "userLogin", ordinal = 0, type = PrimaryKeyType.PARTITIONED)
     private String userLogin;
     private String userPassword;
     private UUID vhostId;
     private Rank rank;
-
-    @Autowired
-    private ShaPasswordEncoder passwordEncoder = new ShaPasswordEncoder(256);
 
     private User() {
 
@@ -52,12 +50,12 @@ public class User implements UserDetails {
     public User(UserCreationRequest _ucr) {
         this.vhostId = _ucr.vhost;
         this.userLogin = _ucr.login;
-        this.userPassword = new ShaPasswordEncoder(256).encodePassword(_ucr.password, getPasswordSalt());
+        this.userPassword = SHA_PASSWORD_ENCODER.encodePassword(_ucr.password, getPasswordSalt());
         this.rank = _ucr.rank;
     }
 
     public boolean checkPassword(String _password) {
-        return passwordEncoder.isPasswordValid(userPassword, _password, getPasswordSalt());
+        return SHA_PASSWORD_ENCODER.isPasswordValid(userPassword, _password, getPasswordSalt());
     }
 
     private String getPasswordSalt() {
@@ -65,7 +63,7 @@ public class User implements UserDetails {
     }
 
     public User setPassword(String _password) {
-        userPassword = passwordEncoder.encodePassword(_password, getPasswordSalt());
+        userPassword = SHA_PASSWORD_ENCODER.encodePassword(_password, getPasswordSalt());
         return this;
     }
 

@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.org/lynxdb/server.svg?branch=master)](https://travis-ci.org/lynxdb/server)
 # LynxDB server
 
 LynxDB is a time-series database built on-top of Cassandra by guys with nothing else to do.
