@@ -16,6 +16,7 @@
         <spring.cassandra.version>1.5.0.M1</spring.cassandra.version>
         <spring.version>1.4.0.RELEASE</spring.version>
         <netty.version>4.1.4.Final</netty.version>
+        <docker.plugin.version>0.4.11</docker.plugin.version>
         <jarName>lynxdb</jarName>
     </properties>
     
@@ -119,7 +120,7 @@
             <plugin>
                 <groupId>com.spotify</groupId>
                 <artifactId>docker-maven-plugin</artifactId>
-                <version>0.4.11</version>
+                <version>${docker.plugin.version}</version>
                 <configuration>
                     <imageName>lynxdb/server</imageName>
                     <forceTags>true</forceTags>
