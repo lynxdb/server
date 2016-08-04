@@ -13,9 +13,9 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-        <spring.cassandra.version>1.5.0.BUILD-SNAPSHOT</spring.cassandra.version>
+        <spring.cassandra.version>1.5.0.M1</spring.cassandra.version>
         <spring.version>1.4.0.RELEASE</spring.version>
-        <netty.version>4.0.29.Final</netty.version>
+        <netty.version>4.1.4.Final</netty.version>
         <jarName>lynxdb</jarName>
     </properties>
     
@@ -131,4 +131,16 @@
             </plugin>
         </plugins>
     </build>
+    
+    
+    <repositories>
+        <repository>
+            <id>spring-libs-snapshot</id>
+            <url>http://repo.spring.io/libs-snapshot</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+    
 </project>
