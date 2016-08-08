@@ -62,7 +62,7 @@ public class Max extends Aggregator {
 
             @Override
             public void reset() {
-                max = Double.MIN_VALUE;
+                max = -Double.MAX_VALUE;
             }
         });
     }
