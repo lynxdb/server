@@ -33,6 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
+ * The main Query engine. Returns a TS for each provided Query
  *
  * @author cambierr
  */
@@ -42,14 +43,25 @@ public class Engine {
     @Autowired
     private TimeSerieRepo tsr;
 
+    /**
+     * Default constructor. Just to make sure it always exists for spring.
+     */
     public Engine() {
 
     }
 
+    /**
+     * Query the database using provided request
+     *
+     * @param _query The Query to be executed
+     * @return A TimeSerie matching the request
+     */
     public TimeSerie query(Query _query) {
+        //scan the database for interesting rows, filter them, and return a list of raw TS
         ChainableIterator<TimeSerie> tss = tsr.find(_query.getVhost(), _query.getName(), _query.getTags(), _query.getStart(), _query.getEnd());
-        
-        if(!tss.hasNext()){
+
+        if (!tss.hasNext()) {
+            //If we don't have any TS from the database, return an empty one to avoid errors in aggregators
             return new TimeSerie(_query.getName(), new HashMap<>(), new ChainableIterator<Entry>() {
                 @Override
                 public boolean hasNext() {
@@ -62,23 +74,20 @@ public class Engine {
                 }
             });
         }
-        
-        /**
-         * proceed to downsampling if required
-         */
+
+        // proceed to downsampling if required
         if (_query.getDownsampling() != null) {
             tss = tss.map((ChainableIterator.Func1<TimeSerie, TimeSerie>) (TimeSerie _source) -> _query.getDownsampling().getAggregator().downsample(_source, _query.getDownsampling().getPeriod()));
         }
 
-        /**
-         * proceed to aggregation
-         */
-        TimeSerie ts = tss.concat((ChainableIterator<TimeSerie> _source) -> _query.getAggregator().aggregate(_source.toList()));
+        // proceed to aggregation
+        TimeSerie ts = tss.reduce((ChainableIterator<TimeSerie> _source) -> _query.getAggregator().aggregate(_source.toList()));
 
-        if(_query.isRate()){
+        // if a rate is requested, process it here
+        if (_query.isRate()) {
             ts = Rate.compute(ts, _query.getRateOptions());
         }
-        
+
         return ts;
     }
 
