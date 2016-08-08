@@ -64,7 +64,7 @@ public class MimMax extends Aggregator {
             public void reset() {
                 max = -Double.MAX_VALUE;
             }
-        }, Double.MIN_VALUE);
+        }, -Double.MAX_VALUE);
     }
 
     @Override
@@ -86,7 +86,7 @@ public class MimMax extends Aggregator {
 
             @Override
             public void reset() {
-                max = Double.MIN_VALUE;
+                max = -Double.MAX_VALUE;
             }
         });
     }
